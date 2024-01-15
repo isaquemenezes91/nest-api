@@ -24,11 +24,13 @@ export class UserController {
   }
 
   @Patch(':id')
+  @UsePipes(ParseUUIDPipe)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
   @Delete(':id')
+  @UsePipes(ParseUUIDPipe)
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }
