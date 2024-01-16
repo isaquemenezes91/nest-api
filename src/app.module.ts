@@ -11,7 +11,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [UserModule,CarsModule,EmployeesModule,RentCarsModule,
     TypeOrmModule.forRoot({
       type:'postgres',
-      url:"postgres://root:root@db:5432/nest"
+      url:"postgres://postgres:root@db:5432/nest",
+      entities: [__dirname + './*.entity.{js,ts}'],
+      subscribers: [__dirname + './*.subscriber.{js,ts}'],
+      synchronize: true,
+      autoLoadEntities:true,
+      logging:true,
+      logger:'file',
     })
   ],
   controllers: [AppController,],
