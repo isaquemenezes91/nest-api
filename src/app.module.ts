@@ -7,14 +7,11 @@ import { EmployeesModule } from './modules/employees/employees.module';
 import { RentCarsModule } from './modules/rent-cars/rent-cars.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-
-
-
 @Module({
   imports: [UserModule,CarsModule,EmployeesModule,RentCarsModule,
     TypeOrmModule.forRoot({
       type:'postgres',
-      url:""
+      url:"postgres://root:root@db:5432/nest"
     })
   ],
   controllers: [AppController,],
