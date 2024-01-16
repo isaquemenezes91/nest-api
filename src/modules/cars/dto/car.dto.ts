@@ -1,7 +1,6 @@
 import { CarInterface } from "../interfaces/car.interface";
 
-export class Car implements CarInterface {
-    id:string;
+export class CarDTO implements CarInterface{
     model : string;
     make: string;
     year: number;
