@@ -1,56 +1,65 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserDto } from './dto/user.dto';
+import { plainToInstance } from 'class-transformer';
+
 
 
 @Injectable()
 export class UsersRepository {
-  public users: User[];
-  constructor() {
-    this.users = [];
+
+  constructor(
+    @InjectRepository(User)
+    private repo: Repository<User>
+  ) { }
+
+  public async create(createUser: CreateUserDto): Promise<UserDto> {
+    
+    try {
+      const user = this.repo.create(createUser);
+      const dbUser = await this.repo.save(user);
+      return plainToInstance(UserDto, dbUser);
+    } catch (e) { throw e }
   }
 
-  private convertToUser(createUser: CreateUserDto): User {
-    const user = new User();
-    user.firstName = createUser.firstName;
-    user.lastName = createUser.lastName;
-    user.email = createUser.email;
-    user.license = createUser.license.toUpperCase();
-    user.active = true;
-    return user;
+  public async findAll(): Promise<UserDto[]> {
+    try {
+      const users = await this.repo.find({})
+      return plainToInstance(UserDto, users);
+    } catch (e) { throw new InternalServerErrorException('Error trying to find all users') }
+
   }
 
-  public create(createUser: CreateUserDto): User {
-    const user = this.convertToUser(createUser);
-    user.id = randomUUID();
-    this.users.push(user);
-    return user;
+  public async findOne(id: string): Promise<UserDto> {
+    try {
+      const user = await this.repo.findOneBy({
+        id,
+      });
+      return plainToInstance(UserDto, user)
+    } catch (e) { throw new InternalServerErrorException('user not found') }
+
   }
 
-  public findAll() {
-    return this.users;
+  public async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
+    try {
+      const user = await this.findOne(id);
+      const newUser: User = {
+        ...user,
+        ...updateUserDto,
+      };
+      this.repo.save(newUser);
+      return plainToInstance(UserDto, newUser);
+    } catch { throw new InternalServerErrorException('Unable to update user') }
   }
 
-  public findOne(id: string): User {
-    const user = this.users.find((user) => user.id === id);
-    if (!user) throw new NotFoundException();
-    return user;
-  }
-
-  public update(id: string, updateUserDto: UpdateUserDto) {
-    const user = this.findOne(id);
-    if (updateUserDto.firstName) user.firstName = updateUserDto.firstName;
-    if (updateUserDto.lastName) user.lastName = updateUserDto.lastName;
-    if (updateUserDto.license) user.license = updateUserDto.license;
-    return user;
-  }
-
-  public remove(id: string) {
-    const index = this.users.findIndex((prop) => prop.id === id);
-    if (index < 0) throw new NotFoundException();
-    this.users.splice(index, 1);
-    return 'sucess';
+  public async remove(id: string) :Promise<void> {
+    try{
+      const user = await this.findOne(id);
+      await this.repo.remove(user);
+    }catch { throw new InternalServerErrorException('error when removing user') }
   }
 }

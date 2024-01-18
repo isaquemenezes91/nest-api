@@ -7,7 +7,7 @@ export const serverConfig = registerAs(
   (): ServerConfigInterface => ({
     environment: process.env?.NODE_ENV ?? 'development',
     port:
-      'string' === typeof process.env.PORT ? parseInt(process.env.PORT) : 3001,
+      'string' === typeof process.env.PORT ? parseInt(process.env.PORT) : 3000,
     cors: {
       origin: process.env.CORS_ORIGIN
         ? process.env.CORS_ORIGIN

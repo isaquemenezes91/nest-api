@@ -6,19 +6,19 @@ import { CarsModule } from './modules/cars/cars.module';
 import { EmployeesModule } from './modules/employees/employees.module';
 import { RentCarsModule } from './modules/rent-cars/rent-cars.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { ConfigModule, ConfigType } from '@nestjs/config';
+import { typeormConfig } from './common/config/typeorm.config';
+import  sampleConfig  from './common/config/sample.config';
 @Module({
-  imports: [UserModule,CarsModule,EmployeesModule,RentCarsModule,
-    TypeOrmModule.forRoot({
-      type:'postgres',
-      url:"postgres://postgres:root@db:5432/nest",
-      entities: [__dirname + './*.entity.{js,ts}'],
-      subscribers: [__dirname + './*.subscriber.{js,ts}'],
-      synchronize: true,
-      autoLoadEntities:true,
-      logging:true,
-      logger:'file',
-    })
+  imports: [UserModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [typeormConfig, sampleConfig],
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [typeormConfig.KEY],
+      useFactory: async (config: ConfigType<typeof typeormConfig>) => config,
+    }),
   ],
   controllers: [AppController,],
   providers: [AppService],
