@@ -1,7 +1,6 @@
-export interface CarInterface{
+export interface CarCreatableInterface{
     model : string;
     make: string;
     year: number;
-    availability:boolean;
     value:number;
 }

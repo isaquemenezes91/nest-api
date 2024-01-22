@@ -10,7 +10,7 @@ import { ConfigModule, ConfigType } from '@nestjs/config';
 import { typeormConfig } from './common/config/typeorm.config';
 import  sampleConfig  from './common/config/sample.config';
 @Module({
-  imports: [UserModule,
+  imports: [CarsModule,UserModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [typeormConfig, sampleConfig],

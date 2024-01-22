@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsInt, IsString } from "class-validator";
+import { CarCreatableInterface } from "../interfaces/car-creatable.interface";
 
-export class CreateCarDto {
+export class CreateCarDto implements CarCreatableInterface {
     @ApiProperty({
         type:'string',
     })
@@ -17,4 +18,6 @@ export class CreateCarDto {
     })
     @IsInt()
     year: number;
+    @IsInt()
+    value: number;
 }

@@ -1,44 +1,66 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
 import { Car } from './entities/car.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CarDTO } from './dto/car.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class CarsRepository {
 
-  public cars: Car[];
-  constructor() {
-    this.cars = [];
+  constructor(
+    @InjectRepository(Car)
+    private repo:Repository<Car>
+     ) {}
+
+ 
+   async create(createCarDto: CreateCarDto):Promise<CarDTO> {
+    try{
+      const car = await this.repo.create(createCarDto);
+      const dbCar = await this.repo.save(car);
+
+      return plainToInstance(CarDTO,dbCar);
+    }catch(e){
+      throw new InternalServerErrorException('Error trying to create a car')
+    }
   }
 
-  private convertToCar(createCar: CreateCarDto): Car {
-    const cars = new Car();
-    cars.model = createCar.model;
-    cars.make = createCar.make;
-    cars.year = createCar.year;
-    return cars;
-  }
-  create(createCarDto: CreateCarDto):Car {
-    const car = this.convertToCar(createCarDto);
-    this.cars.push(car)
-    return car;
+  async findAll():Promise<CarDTO[]> {
+    try{
+      const cars = await this.repo.find({});
+      return plainToInstance(CarDTO,cars);
+    }catch(e){
+      throw new InternalServerErrorException('Error trying to find all cars')
+    }
   }
 
-  findAll() {
-    return this.cars;
+  async findOne(id: string): Promise<CarDTO> {
+    try{
+      const car = await this.repo.findOneBy({id,})
+      return plainToInstance(CarDTO,car)
+    }catch(e){throw new InternalServerErrorException('ERROR')}
+    
   }
 
-  findOne(id: string) {
-    const car = this.cars.find((car)=> car.id ===id)
-    if(!car) throw new NotFoundException();
-    return car;
+  async update(id: string, updateCarDto: UpdateCarDto): Promise<UpdateCarDto>{
+    try{
+      const car = await this.findOne(id);
+      const newCar: Car = {
+        ...car,
+        ...updateCarDto,
+      };
+      this.repo.save(newCar);
+      return plainToInstance(CarDTO, newCar);
+    }catch(e){throw new InternalServerErrorException('ERROR')}
+    
   }
 
-  update(id: string, updateCarDto: UpdateCarDto) {
-    return `This action updates a #${id} car`;
-  }
-
-  remove(id: string) {
-    return `This action removes a #${id} car`;
+  async remove(id: string):Promise<void>{
+    try{
+      const car = await this.findOne(id);
+      await this.repo.remove(car);
+    }catch { throw new InternalServerErrorException('error when removing car') }
   }
 }
